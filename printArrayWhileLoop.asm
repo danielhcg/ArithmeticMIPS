@@ -104,7 +104,7 @@
 			#test condition
 			beq $t0, 12, exit  #if t0 = 12, then break out of while loop
 			
-			lw $t6, myArray,($t0) #load element to register t0
+			lw $t6, myArray($t0) #load element to register t0
 			
 			#updating offset
 			addi $t0, $t0, 4
