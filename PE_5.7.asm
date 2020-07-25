@@ -11,41 +11,48 @@
 
 .data
     
-	programTitle: .asciiz "Average Rainfall----------\n"
-	yearsPrompt:  .asciiz "Number of years: "
+    #user prompts
+	programTitle:     .asciiz "Average Rainfall----------\n"
+	yearsPrompt:      .asciiz "Number of years: "
+	yearMessage:      .asciiz "Year "
+	monthMessage:     .asciiz "Month "
 	
+	#output prompts
+	totalMonths:      .asciiz "Total Months: "
+	totalRainfall:    .asciiz "\nTotal Rainfall: "
+	avgRainfall:      .asciiz "\nAverage Rainfall: "
+	
+	#incrementors for both loops 
 	outerIncrementor: .word 1
 	innerIncrementor: .word 1
-	monthInYear: .word 12
+	monthInYear:      .word 12
 	
-	yearMessage: .asciiz "Year "
-	monthMessage: .asciiz "Month "
-	totalMonths: .asciiz "Total Months: "
-	totalRainfall: .asciiz "\nTotal Rainfall: "
-	avgRainfall:   .asciiz "\nAverage Rainfall: "
-	doneMessage1: .asciiz "\nDone1!\n"
-	doneMessage2: .asciiz "Done2!\n"
-	newLine: .asciiz "\n"
-	colon: .asciiz ": "
+	#cosmetic string literals 
+	newLine:          .asciiz "\n"
+	colon:            .asciiz ": "
 	
-	zeroAsFloat: .float 0.0
-	runningTotal: .float 0.0
+	#for calculating average rainfall as a decimal
+	zeroAsFloat:      .float 0.0
+	runningTotal:     .float 0.0
 
 .text
 
 	main: 
-	
-		lwc1 $f1, zeroAsFloat
-		lwc1 $f2, runningTotal
 	
 		# $t0 = years
 		# $t1 = outerIncrementor
 		# $t2 = months
 		# $t3 = innerIncrementor
 		
+		# $f1 = zeroAsFloat
+		# $f2 = runningTotal
+		
+		#loading values from RAM into processor registers
 		lw $t1, outerIncrementor
 		lw $t2, monthInYear
 		
+		lwc1 $f1, zeroAsFloat
+		lwc1 $f2, runningTotal
 	
 		#displaying program title
 		li $v0, 4
@@ -64,11 +71,10 @@
 		#moving user inputted value for years into register t0
 		move $t0, $v0
 		
-
-		
+		#begining of outer loop 	
 		while1: 
 		
-			#branch to exit if outerIncrementor is greater than hours
+			#branch to exit1 if outerIncrementor is greater than years
  			bgt $t1, $t0, exit1
  			
  				#loop body
@@ -93,15 +99,18 @@
 				la $a0, newLine
 				syscall
 				
+				#loading innerIncrementor to t register inside outer while loop
 				lw $t3, innerIncrementor
 				
+				#begining of inner loop 
 				while2:
 				
+					#branch to exit2 if innerIncrementor > months
 					bgt $t3, $t2, exit2
 					
 						#loop body
 						
-						#prompt user to enter rain fall for month
+						#prompt user to enter rain fall for that month
 						li $v0, 4
 						la $a0, monthMessage
 						syscall
@@ -122,25 +131,34 @@
 						
 						#add user input to running total 
 						add.s $f2, $f2, $f0 
-						
 					
+					#increment innerIncrementor
 					addi $t3, $t3, 1
 					
-					j while2
+					#jump back to while2 if condition is still true
+					j while2 
+					
+					#display new line
+					li $v0, 4
+					la $a0, newLine
+					syscall
 				
+				#end of inner loop 
 				exit2: 
 				
-					li $v0, 4
-					la $a0, doneMessage2
-					syscall
- 			
  			#incrementing the outerIncrementor
  			addi $t1, $t1, 1
  			
- 			#jumps back to while
+ 			#jumps back to while1
  			j while1 
 		
+		#end of of outer loop 
 		exit1: 
+		
+			#display new line
+			li $v0, 4
+			la $a0, newLine
+			syscall
 		
 			#display total number of months message
 			li $v0, 4
@@ -162,26 +180,34 @@
 			add.s $f12, $f2, $f1
 			syscall 
 			
-			
 			#display average rainfall message
 			li $v0, 4
 			la $a0, avgRainfall
 			syscall
 			
 			#display average rainfall
-			#running total / number of months 
+			#running total f2 / number of months f1
 			
+			# years * months, stored in t4
 			mul $t4, $t0, $t2
 			
 			
-			li $v0, 2
-			div.s $f12, $f2, $t2
+			#convert number of months integer to float
+			mtc1 $t4, $f1
+			cvt.s.w $f1, $f1
 			
-			#display outerloop done message
-			li $v0, 4
-			la $a0, doneMessage1
+			#divide running total by months 
+			div.s $f12, $f2, $f1
+			
+			#display average
+			li $v0, 2
 			syscall
-	
+			
+			#display new line
+			li $v0, 4
+			la $a0, newLine
+			syscall
+			
 	#closing statement of main 
 	li $v0, 10
 	syscall
