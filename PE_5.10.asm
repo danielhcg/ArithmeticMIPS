@@ -12,11 +12,13 @@
 	doneMessage: .asciiz "Done!"
 	sentinal: .word -99
 	incrementor: .word 0
+	oneValue: .word 1
 .text
 	main:
 	
 		lw $t1, incrementor
 		lw $t2, sentinal
+		lw $t8, oneValue
 	
 		li $v0, 4
 		la $a0, programTitle
@@ -47,13 +49,8 @@
 				#move input to $t4
 				move $t4, $v0
 				
-					while2:
-						bgt $t4, $t3, exit2
-					exit2: 
-						add $t5, $t4, $zero
-				
-				#clear $t3
-				mul $t3, $t3, $zero
+				sgt $s0, $t4, $t3
+				beq $s0, $t8, exit2
 				
 				#move user input to $t3
 				move $t3, $t4
@@ -69,9 +66,20 @@
 			syscall
 			
 			jal displaySmall
+			
+			li $v0, 1
+			add $a0, $zero, $t7
+			syscall
 		
 	li $v0, 10
 	syscall
+	
+	exit2: 
+		add $t5, $t4, $zero
+		
+		#clear $t4
+		mul $t4, $t4, $zero
+
 	
 	promptUser: 
 		li $v0, 4
